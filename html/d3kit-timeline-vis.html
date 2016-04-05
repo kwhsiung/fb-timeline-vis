@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <title>d3Kit-timeline</title>
 
-  <link rel="stylesheet" href="d3kit-style.css">
+  <link rel="stylesheet" href="d3kit-timeline-style.css">
   <style>
     .axis path{
       fill: none;
@@ -49,42 +49,14 @@
 
 'use strict';
 
-d3.json("../testdata/posts_974071749342682.json", function(err, json) {
-  var time_format = d3.time.format("%Y-%m-%dT%X%Z");
+var display_date = '2011-3';
 
-  var data = [];
-  var element = document.getElementById('chart');
+var display_year = display_date.split('-')[0],
+    display_month = display_date.split('-')[1];
 
-  json.data.forEach(function(d) {
-    var date = time_format.parse(d.created_time);
-    var date_object = {
-      time: date,
-      id: d.id,
-      message: d.message,
-      story: d.story
-    };
-
-    data.push(date_object);
-  });
-
-  // pop out the status of birthday created by Facebook
-  data.pop();
-
-  var chart1x = new d3KitTimeline('#t1x', {
-      direction: 'right',
-      initialHeight: 1000000,
-      textFn: function(d){
-        return d.time.getFullYear() + '/' + (d.time.getMonth()+1) + '/' + d.time.getDate() + ' - ' + (d.message || d.story);
-      }
-    }).data(data).resizeToFit();
-});
-</script>
-
-<div class="timeline" id="t2x"></div>
-<script>
-/* globals d3, d3Kit, d3KitTimeline */
-
-'use strict';
+// set the date domain, since the display_month to the next month
+var min = new Date(display_year, display_month-1, '1'), // month parameter is zero based
+    max = new Date(display_year, display_month, '1');
 
 d3.json("../testdata/posts_10206020424375054.json", function(err, json) {
   var time_format = d3.time.format("%Y-%m-%dT%X%Z");
@@ -104,34 +76,78 @@ d3.json("../testdata/posts_10206020424375054.json", function(err, json) {
     data.push(date_object);
   });
 
-  // pop out the status of birthday created by Facebook
-  data.pop();
+  var nested_data = d3.nest()
+    .key(function(d) { return (d.time.getFullYear())+'-'+(d.time.getMonth()+1); })
+    .entries(data);
 
-  var chart2x = new d3KitTimeline('#t2x', {
+  console.log(nested_data)
+
+  nested_data = nested_data.filter(function(d){ return d.key === display_date; });
+
+  var chart1x = new d3KitTimeline('#t1x', {
       direction: 'right',
-      initialHeight: 1000000,
+      initialWidth: 500,
+      initialHeight: 1500,
+      dotColor: '#ffaeb9',
+      labelBgColor: '#ffaeb9',
+      linkColor: '#ffaeb9',
+      labelTextColor: '#000000',
+      domain: [max, min], // reverse the order to newest post first
       textFn: function(d){
         return d.time.getFullYear() + '/' + (d.time.getMonth()+1) + '/' + d.time.getDate() + ' - ' + (d.message || d.story);
       }
-    }).data(data).resizeToFit();
+    }).data(nested_data[0].values);
 });
 </script>
 
-<!-- <div class="timeline" id="t2x"></div>
+<div class="timeline" id="t2x"></div>
 <script>
-var chart2x = new d3KitTimeline('#t2x', {
-  direction: 'left',
-  initialHeight: 250,
-  margin: {left: 20, right: 20, top: 20, bottom: 20},
-  textFn: function(d){
-    return d.name + ' - ' + d.time.getFullYear();
-  },
-  labelBgColor: '#777',
-  linkColor: '#777'
+/* globals d3, d3Kit, d3KitTimeline */
+
+'use strict';
+
+// other data
+d3.json("../testdata/posts_974071749342682.json", function(err, json) {
+  var time_format = d3.time.format("%Y-%m-%dT%X%Z");
+
+  var data = [];
+  var element = document.getElementById('chart');
+
+  json.data.forEach(function(d) {
+    var date = time_format.parse(d.created_time);
+    var date_object = {
+      time: date,
+      id: d.id,
+      message: d.message,
+      story: d.story
+    };
+
+    data.push(date_object);
+  });
+
+  var nested_data = d3.nest()
+    .key(function(d) { return (d.time.getFullYear())+'-'+(d.time.getMonth()+1); })
+    .entries(data);
+
+  console.log(nested_data)
+
+  nested_data = nested_data.filter(function(d){ return d.key === display_date; });
+
+  var chart2x = new d3KitTimeline('#t2x', {
+      direction: 'left',
+      initialWidth: 500,
+      initialHeight: 1500,
+      dotColor: '#133754',
+      labelBgColor: '#133754',
+      linkColor: '#133754',
+      labelTextColor: '#ffffff',
+      domain: [max, min], // reverse the order to newest post first
+      textFn: function(d){
+        return d.time.getFullYear() + '/' + (d.time.getMonth()+1) + '/' + d.time.getDate() + ' - ' + (d.message || d.story);
+      }
+    }).data(nested_data[0].values);
 });
-chart2x.axis.ticks(0).tickSize(0);
-chart2x.data(data).resizeToFit();
-</script> -->
+</script>
 
 </body>
 </html>
