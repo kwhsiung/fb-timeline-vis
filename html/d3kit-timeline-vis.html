@@ -30,6 +30,41 @@
     text.label-text{
       font-size: 12px;
     }
+
+    div.tooltip {
+      /*position: absolute;
+      text-align: center;
+      width: 300px;
+      height: 100px;
+      padding: 2px;
+      font: 12px sans-serif;
+      background: lightsteelblue;
+      border: 0px;
+      border-radius: 8px;
+      pointer-events: none;*/
+
+      position: absolute;
+      text-align: left;
+      width: 150;
+      height: 200;
+      padding: 10px;
+      background-color: white;
+
+      -webkit-border-radius: 10px;
+      -moz-border-radius: 10px;
+      border-radius: 10px;
+
+      -webkit-box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.4);
+      -moz-box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.4);
+      box-shadow: 4px 4px 10px rgba(0, 0, 0, 0.4);
+
+      pointer-events: none;
+
+      background: white;
+      line-height: 20px;
+      font-size: 20px;
+      /*color: DimGray;*/
+    }
   </style>
 </head>
 
@@ -49,7 +84,10 @@
 
 'use strict';
 
-var display_date = '2015-5';
+var monthNames = ["January", "February", "March", "April", "May", "June",
+  "July", "August", "September", "October", "November", "December"
+];
+var display_date = '2012-5';
 
 var display_year = display_date.split('-')[0],
     display_month = display_date.split('-')[1];
@@ -57,6 +95,10 @@ var display_year = display_date.split('-')[0],
 // set the date domain, since the display_month to the next month
 var min = new Date(display_year, display_month-1, '1'), // month parameter is zero based
     max = new Date(display_year, display_month, '1');
+
+var div = d3.select("body").append("div")
+    .attr("class", "tooltip")
+    .style("opacity", 0);
 
 d3.json("../testdata/posts_10206020424375054.json", function(err, json) {
   var time_format = d3.time.format("%Y-%m-%dT%X%Z");
@@ -94,11 +136,49 @@ d3.json("../testdata/posts_10206020424375054.json", function(err, json) {
       linkColor: '#ffaeb9',
       labelTextColor: '#000000',
       domain: [max, min], // reverse the order to newest post first
-      textFn: function(d){
-        if(d.message || d.story)
-        return (d.message || d.story).substring(0, 35) + ' - ' + d.time.getFullYear() + '/' + (d.time.getMonth()+1) + '/' + d.time.getDate();
+      textFn: function(d) {
+        if(d.message) {
+          if(d.message.substring(25, 26) === '') return d.message + ' - ' + monthNames[d.time.getMonth()] + ' ' + d.time.getDate() + ', ' + d.time.getFullYear();
+          else return d.message.substring(0, 25) + ' ... See More' + ' - ' + monthNames[d.time.getMonth()] + ' ' + d.time.getDate() + ', ' + d.time.getFullYear();
+        } else if (d.story) {
+          return d.story + ' - ' + monthNames[d.time.getMonth()] + ' ' + d.time.getDate() + ', ' + d.time.getFullYear();
+        }
       }
-    }).data(nested_data[0].values);
+    })
+    .data(nested_data[0].values)
+    .on('labelMousemove', function(d){
+      if(d.message) {
+        var message_eachline = d.message.split('\n');
+        var message = '';
+        message_eachline.forEach(function(d){
+          message += d + '</br>';
+        });
+
+        div.transition()
+            .duration(100)
+            .style("opacity", .7);
+
+        div.html(message)
+            .style("left", (d3.event.pageX + 20) + "px")
+            .style("top", (d3.event.pageY - 28) + "px");
+      } else if (d.story) {
+        div.transition()
+            .duration(100)
+            .style("opacity", .7);
+
+        div.html(d.story)
+            .style("left", (d3.event.pageX + 20) + "px")
+            .style("top", (d3.event.pageY - 28) + "px");
+      }
+    })
+    .on('labelMouseout', function(d){
+      div.transition()
+          .duration(100)
+          .style("opacity", 0)
+    })
+    .on('labelClick', function(d){
+      window.open('http://www.facebook.com/' + d.id);
+    });
 });
 </script>
 
@@ -145,11 +225,49 @@ d3.json("../testdata/posts_974071749342682.json", function(err, json) {
       linkColor: '#133754',
       labelTextColor: '#ffffff',
       domain: [max, min], // reverse the order to newest post first
-      textFn: function(d){
-        if(d.message || d.story)
-        return d.time.getFullYear() + '/' + (d.time.getMonth()+1) + '/' + d.time.getDate() + ' - ' + (d.message || d.story).substring(0, 35);
+      textFn: function(d) {
+        if(d.message) {
+          if(d.message.substring(25, 26) === '') return monthNames[d.time.getMonth()] + ' ' + d.time.getDate() + ', ' + d.time.getFullYear() + ' - ' + d.message;
+          else return monthNames[d.time.getMonth()] + ' ' + d.time.getDate() + ', ' + d.time.getFullYear() + ' - ' + d.message.substring(0, 25) + ' ... See More';
+        } else if (d.story) {
+          return monthNames[d.time.getMonth()] + ' ' + d.time.getDate() + ', ' + d.time.getFullYear() + ' - ' + d.story;
+        }
       }
-    }).data(nested_data[0].values);
+    })
+    .data(nested_data[0].values)
+    .on('labelMousemove', function(d){
+      if(d.message) {
+        var message_eachline = d.message.split('\n');
+        var message = '';
+        message_eachline.forEach(function(d){
+          message += d + '</br>';
+        });
+
+        div.transition()
+            .duration(100)
+            .style("opacity", .7);
+
+        div.html(message)
+            .style("left", (d3.event.pageX + 20) + "px")
+            .style("top", (d3.event.pageY - 28) + "px");
+      } else if (d.story) {
+        div.transition()
+            .duration(100)
+            .style("opacity", .7);
+
+        div.html(d.story)
+            .style("left", (d3.event.pageX + 20) + "px")
+            .style("top", (d3.event.pageY - 28) + "px");
+      }
+    })
+    .on('labelMouseout', function(d){
+      div.transition()
+          .duration(100)
+          .style("opacity", 0)
+    })
+    .on('labelClick', function(d){
+      window.open('http://www.facebook.com/' + d.id);
+    });
 
 });
 </script>
