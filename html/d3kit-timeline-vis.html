@@ -73,6 +73,7 @@
 
 <br>
 
+<!-- <script src="https://code.jquery.com/jquery-1.12.0.min.js"></script> -->
 <script src="http://d3js.org/d3.v3.min.js"></script>
 <script src="http://rawgit.com/twitter/d3kit/master/dist/d3kit.min.js"></script>
 <script src="https://rawgit.com/twitter/labella.js/master/dist/labella.min.js"></script>
@@ -269,6 +270,19 @@ d3.json("../testdata/posts_974071749342682.json", function(err, json) {
       window.open('http://www.facebook.com/' + d.id);
     });
 
+});
+
+
+d3.select(window).on('scroll', function() {
+  console.log(window.innerHeight + document.body.scrollTop);
+  console.log(document.body.offsetHeight)
+
+  // when we are at the bottom
+  if((window.innerHeight + document.body.scrollTop) >= document.body.offsetHeight) {
+    d3.select('body')
+    .append('p')
+    .text('hahaha');
+  }
 });
 </script>
 
