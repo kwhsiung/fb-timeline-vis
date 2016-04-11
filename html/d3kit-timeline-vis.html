@@ -87,6 +87,7 @@ var yu = "../testdata/posts_10206020424375054.json",
 var monthNames = ["January", "February", "March", "April", "May", "June",
   "July", "August", "September", "October", "November", "December"
 ];
+
 var display_date = '2012-5';
 
 var display_year = display_date.split('-')[0],
@@ -105,6 +106,11 @@ var div = d3.select("body").append("div")
 visualizeTimeline('#t1x', yu, display_date);
 
 function visualizeTimeline(element_id, userdata, period) {
+  d3.select('body')
+  .append('div')
+  .attr('class', 'timeline')
+  .attr('id', element_id);
+
   d3.json(userdata, function(err, json) {
     var time_format = d3.time.format("%Y-%m-%dT%X%Z");
 
@@ -126,9 +132,7 @@ function visualizeTimeline(element_id, userdata, period) {
       .key(function(d) { return (d.time.getFullYear())+'-'+(d.time.getMonth()+1); })
       .entries(data);
 
-    console.log(nested_data)
-
-    nested_data = nested_data.filter(function(d){ return d.key === display_date; });
+    nested_data = nested_data.filter(function(d){ return d.key === period; });
 
     var d3KitTimeline_options;
 
@@ -176,6 +180,7 @@ function visualizeTimeline(element_id, userdata, period) {
       }
     }
 
+    console.log(nested_data[0].values)
     var chart = new d3KitTimeline(element_id, d3KitTimeline_options)
       .data(nested_data[0].values)
       .on('labelMousemove', function(d){
