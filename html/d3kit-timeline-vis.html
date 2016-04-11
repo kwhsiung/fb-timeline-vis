@@ -79,11 +79,10 @@
 <script src="https://rawgit.com/twitter/labella.js/master/dist/labella.min.js"></script>
 <script src="../lib/d3kit-timeline.js"></script>
 
-<div class="timeline" id="t1x"></div>
+<!-- <div class="timeline" id="t1x"></div> -->
 <script>
-/* globals d3, d3Kit, d3KitTimeline */
-
-'use strict';
+var yu = "../testdata/posts_10206020424375054.json",
+    kb = "../testdata/posts_974071749342682.json";
 
 var monthNames = ["January", "February", "March", "April", "May", "June",
   "July", "August", "September", "October", "November", "December"
@@ -101,177 +100,120 @@ var div = d3.select("body").append("div")
     .attr("class", "tooltip")
     .style("opacity", 0);
 
-d3.json("../testdata/posts_10206020424375054.json", function(err, json) {
-  var time_format = d3.time.format("%Y-%m-%dT%X%Z");
+// var display_date = 0;
 
-  var data = [];
-  var element = document.getElementById('chart');
+visualizeTimeline('#t1x', yu, display_date);
 
-  json.data.forEach(function(d) {
-    var date = time_format.parse(d.created_time);
-    var date_object = {
-      time: date,
-      id: d.id,
-      message: d.message,
-      story: d.story
-    };
+function visualizeTimeline(element_id, userdata, period) {
+  d3.json(userdata, function(err, json) {
+    var time_format = d3.time.format("%Y-%m-%dT%X%Z");
 
-    data.push(date_object);
-  });
+    var data = [];
 
-  var nested_data = d3.nest()
-    .key(function(d) { return (d.time.getFullYear())+'-'+(d.time.getMonth()+1); })
-    .entries(data);
+    json.data.forEach(function(d) {
+      var date = time_format.parse(d.created_time);
+      var date_object = {
+        time: date,
+        id: d.id,
+        message: d.message,
+        story: d.story
+      };
 
-  console.log(nested_data)
-
-  nested_data = nested_data.filter(function(d){ return d.key === display_date; });
-
-  var chart1x = new d3KitTimeline('#t1x', {
-      direction: 'left',
-      margin: {left: 40, right: 50, top: 20, bottom: 20},
-      initialWidth: 600,
-      initialHeight: 1500,
-      dotColor: '#ffaeb9',
-      labelBgColor: '#ffaeb9',
-      linkColor: '#ffaeb9',
-      labelTextColor: '#000000',
-      domain: [max, min], // reverse the order to newest post first
-      textFn: function(d) {
-        if(d.message) {
-          if(d.message.substring(25, 26) === '') return d.message + ' - ' + monthNames[d.time.getMonth()] + ' ' + d.time.getDate() + ', ' + d.time.getFullYear();
-          else return d.message.substring(0, 25) + ' ... See More' + ' - ' + monthNames[d.time.getMonth()] + ' ' + d.time.getDate() + ', ' + d.time.getFullYear();
-        } else if (d.story) {
-          return d.story + ' - ' + monthNames[d.time.getMonth()] + ' ' + d.time.getDate() + ', ' + d.time.getFullYear();
-        }
-      }
-    })
-    .data(nested_data[0].values)
-    .on('labelMousemove', function(d){
-      if(d.message) {
-        var message_eachline = d.message.split('\n');
-        var message = '';
-        message_eachline.forEach(function(d){
-          message += d + '</br>';
-        });
-
-        div.transition()
-            .duration(100)
-            .style("opacity", .7);
-
-        div.html(message)
-            .style("left", (d3.event.pageX + 20) + "px")
-            .style("top", (d3.event.pageY - 28) + "px");
-      } else if (d.story) {
-        div.transition()
-            .duration(100)
-            .style("opacity", .7);
-
-        div.html(d.story)
-            .style("left", (d3.event.pageX + 20) + "px")
-            .style("top", (d3.event.pageY - 28) + "px");
-      }
-    })
-    .on('labelMouseout', function(d){
-      div.transition()
-          .duration(100)
-          .style("opacity", 0)
-    })
-    .on('labelClick', function(d){
-      window.open('http://www.facebook.com/' + d.id);
-    });
-});
-</script>
-
-<div class="timeline" id="t2x"></div>
-<script>
-/* globals d3, d3Kit, d3KitTimeline */
-
-'use strict';
-
-// other data
-d3.json("../testdata/posts_974071749342682.json", function(err, json) {
-  var time_format = d3.time.format("%Y-%m-%dT%X%Z");
-
-  var data = [];
-  var element = document.getElementById('chart');
-
-  json.data.forEach(function(d) {
-    var date = time_format.parse(d.created_time);
-    var date_object = {
-      time: date,
-      id: d.id,
-      message: d.message,
-      story: d.story
-    };
-
-    data.push(date_object);
-  });
-
-  var nested_data = d3.nest()
-    .key(function(d) { return (d.time.getFullYear())+'-'+(d.time.getMonth()+1); })
-    .entries(data);
-
-  console.log(nested_data)
-
-  nested_data = nested_data.filter(function(d){ return d.key === display_date; });
-
-  var chart2x = new d3KitTimeline('#t2x', {
-      direction: 'right',
-      margin: {left: 50, right: 20, top: 20, bottom: 20},
-      initialWidth: 600,
-      initialHeight: 1500,
-      dotColor: '#133754',
-      labelBgColor: '#133754',
-      linkColor: '#133754',
-      labelTextColor: '#ffffff',
-      domain: [max, min], // reverse the order to newest post first
-      textFn: function(d) {
-        if(d.message) {
-          if(d.message.substring(25, 26) === '') return monthNames[d.time.getMonth()] + ' ' + d.time.getDate() + ', ' + d.time.getFullYear() + ' - ' + d.message;
-          else return monthNames[d.time.getMonth()] + ' ' + d.time.getDate() + ', ' + d.time.getFullYear() + ' - ' + d.message.substring(0, 25) + ' ... See More';
-        } else if (d.story) {
-          return monthNames[d.time.getMonth()] + ' ' + d.time.getDate() + ', ' + d.time.getFullYear() + ' - ' + d.story;
-        }
-      }
-    })
-    .data(nested_data[0].values)
-    .on('labelMousemove', function(d){
-      if(d.message) {
-        var message_eachline = d.message.split('\n');
-        var message = '';
-        message_eachline.forEach(function(d){
-          message += d + '</br>';
-        });
-
-        div.transition()
-            .duration(100)
-            .style("opacity", .7);
-
-        div.html(message)
-            .style("left", (d3.event.pageX + 20) + "px")
-            .style("top", (d3.event.pageY - 28) + "px");
-      } else if (d.story) {
-        div.transition()
-            .duration(100)
-            .style("opacity", .7);
-
-        div.html(d.story)
-            .style("left", (d3.event.pageX + 20) + "px")
-            .style("top", (d3.event.pageY - 28) + "px");
-      }
-    })
-    .on('labelMouseout', function(d){
-      div.transition()
-          .duration(100)
-          .style("opacity", 0)
-    })
-    .on('labelClick', function(d){
-      window.open('http://www.facebook.com/' + d.id);
+      data.push(date_object);
     });
 
-});
+    var nested_data = d3.nest()
+      .key(function(d) { return (d.time.getFullYear())+'-'+(d.time.getMonth()+1); })
+      .entries(data);
 
+    console.log(nested_data)
+
+    nested_data = nested_data.filter(function(d){ return d.key === display_date; });
+
+    var d3KitTimeline_options;
+
+    if(userdata === "../testdata/posts_10206020424375054.json") {
+      // yu
+      d3KitTimeline_options = {
+        direction: 'left',
+        margin: {left: 40, right: 50, top: 20, bottom: 20},
+        initialWidth: 600,
+        initialHeight: 1500,
+        dotColor: '#ffaeb9',
+        labelBgColor: '#ffaeb9',
+        linkColor: '#ffaeb9',
+        labelTextColor: '#000000',
+        domain: [max, min], // reverse the order to newest post first
+        textFn: function(d) {
+          if(d.message) {
+            if(d.message.substring(25, 26) === '') return d.message + ' - ' + monthNames[d.time.getMonth()] + ' ' + d.time.getDate() + ', ' + d.time.getFullYear();
+            else return d.message.substring(0, 25) + ' ... See More' + ' - ' + monthNames[d.time.getMonth()] + ' ' + d.time.getDate() + ', ' + d.time.getFullYear();
+          } else if (d.story) {
+            return d.story + ' - ' + monthNames[d.time.getMonth()] + ' ' + d.time.getDate() + ', ' + d.time.getFullYear();
+          }
+        }
+      }
+    } else if(userdata === "../testdata/posts_974071749342682.json") {
+      // kb
+      d3KitTimeline_options = {
+        direction: 'right',
+        margin: {left: 50, right: 20, top: 20, bottom: 20},
+        initialWidth: 600,
+        initialHeight: 1500,
+        dotColor: '#133754',
+        labelBgColor: '#133754',
+        linkColor: '#133754',
+        labelTextColor: '#ffffff',
+        domain: [max, min], // reverse the order to newest post first
+        textFn: function(d) {
+          if(d.message) {
+            if(d.message.substring(25, 26) === '') return monthNames[d.time.getMonth()] + ' ' + d.time.getDate() + ', ' + d.time.getFullYear() + ' - ' + d.message;
+            else return monthNames[d.time.getMonth()] + ' ' + d.time.getDate() + ', ' + d.time.getFullYear() + ' - ' + d.message.substring(0, 25) + ' ... See More';
+          } else if (d.story) {
+            return monthNames[d.time.getMonth()] + ' ' + d.time.getDate() + ', ' + d.time.getFullYear() + ' - ' + d.story;
+          }
+        }
+      }
+    }
+
+    var chart = new d3KitTimeline(element_id, d3KitTimeline_options)
+      .data(nested_data[0].values)
+      .on('labelMousemove', function(d){
+        if(d.message) {
+          var message_eachline = d.message.split('\n');
+          var message = '';
+          message_eachline.forEach(function(d){
+            message += d + '</br>';
+          });
+
+          div.transition()
+              .duration(100)
+              .style("opacity", .7);
+
+          div.html(message)
+              .style("left", (d3.event.pageX + 20) + "px")
+              .style("top", (d3.event.pageY - 28) + "px");
+        } else if (d.story) {
+          div.transition()
+              .duration(100)
+              .style("opacity", .7);
+
+          div.html(d.story)
+              .style("left", (d3.event.pageX + 20) + "px")
+              .style("top", (d3.event.pageY - 28) + "px");
+        }
+      })
+      .on('labelMouseout', function(d){
+        div.transition()
+            .duration(100)
+            .style("opacity", 0)
+      })
+      .on('labelClick', function(d){
+        window.open('http://www.facebook.com/' + d.id);
+      });
+
+  });
+}
 
 d3.select(window).on('scroll', function() {
   console.log(window.innerHeight + document.body.scrollTop);
