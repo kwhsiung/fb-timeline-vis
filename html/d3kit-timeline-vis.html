@@ -75,41 +75,25 @@
 
 <!-- <script src="https://code.jquery.com/jquery-1.12.0.min.js"></script> -->
 <script src="http://d3js.org/d3.v3.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.12.0/moment.min.js"></script>
 <script src="http://rawgit.com/twitter/d3kit/master/dist/d3kit.min.js"></script>
 <script src="https://rawgit.com/twitter/labella.js/master/dist/labella.min.js"></script>
 <script src="../lib/d3kit-timeline.js"></script>
 
 <!-- <div class="timeline" id="t1x"></div> -->
 <script>
-var yu = "../testdata/posts_10206020424375054.json",
-    kb = "../testdata/posts_974071749342682.json";
-
-var monthNames = ["January", "February", "March", "April", "May", "June",
-  "July", "August", "September", "October", "November", "December"
-];
-
-var display_date = '2012-5';
-
-var display_year = display_date.split('-')[0],
-    display_month = display_date.split('-')[1];
-
-// set the date domain, since the display_month to the next month
-var min = new Date(display_year, display_month-1, '1'), // month parameter is zero based
-    max = new Date(display_year, display_month, '1');
-
-var div = d3.select("body").append("div")
-    .attr("class", "tooltip")
-    .style("opacity", 0);
-
-// var display_date = 0;
-
-visualizeTimeline('#t1x', yu, display_date);
-
 function visualizeTimeline(element_id, userdata, period) {
   d3.select('body')
   .append('div')
   .attr('class', 'timeline')
   .attr('id', element_id);
+
+  var display_year = period.split('-')[0],
+      display_month = period.split('-')[1];
+
+  // set the date domain, since the display_month to the next month
+  var min = new Date(display_year, display_month-1, '1'), // month parameter is zero based
+      max = new Date(display_year, display_month, '1');
 
   d3.json(userdata, function(err, json) {
     var time_format = d3.time.format("%Y-%m-%dT%X%Z");
@@ -141,11 +125,11 @@ function visualizeTimeline(element_id, userdata, period) {
       d3KitTimeline_options = {
         direction: 'left',
         margin: {left: 40, right: 50, top: 20, bottom: 20},
-        initialWidth: 600,
-        initialHeight: 1500,
-        dotColor: '#ffaeb9',
-        labelBgColor: '#ffaeb9',
-        linkColor: '#ffaeb9',
+        initialWidth: window.innerWidth/2.5,
+        initialHeight: 2000,
+        dotColor: '#ff77aa',
+        labelBgColor: '#ff77aa',
+        linkColor: '#ff77aa',
         labelTextColor: '#000000',
         domain: [max, min], // reverse the order to newest post first
         textFn: function(d) {
@@ -162,8 +146,8 @@ function visualizeTimeline(element_id, userdata, period) {
       d3KitTimeline_options = {
         direction: 'right',
         margin: {left: 50, right: 20, top: 20, bottom: 20},
-        initialWidth: 600,
-        initialHeight: 1500,
+        initialWidth: window.innerWidth/2.5,
+        initialHeight: 2000,
         dotColor: '#133754',
         labelBgColor: '#133754',
         linkColor: '#133754',
@@ -180,8 +164,7 @@ function visualizeTimeline(element_id, userdata, period) {
       }
     }
 
-    console.log(nested_data[0].values)
-    var chart = new d3KitTimeline(element_id, d3KitTimeline_options)
+    var chart = new d3KitTimeline('#' + element_id, d3KitTimeline_options)
       .data(nested_data[0].values)
       .on('labelMousemove', function(d){
         if(d.message) {
@@ -216,19 +199,34 @@ function visualizeTimeline(element_id, userdata, period) {
       .on('labelClick', function(d){
         window.open('http://www.facebook.com/' + d.id);
       });
-
   });
-}
+};
+
+var yu = "../testdata/posts_10206020424375054.json",
+    kb = "../testdata/posts_974071749342682.json";
+
+var monthNames = ["January", "February", "March", "April", "May", "June",
+  "July", "August", "September", "October", "November", "December"
+];
+
+var display_date = '2016-1'
+var id = 1;
+
+var div = d3.select("body").append("div")
+    .attr("class", "tooltip")
+    .style("opacity", 0);
+
+visualizeTimeline('t'+id+'x', yu, display_date);
+visualizeTimeline('t'+(id+1)+'x', kb, display_date);
 
 d3.select(window).on('scroll', function() {
-  console.log(window.innerHeight + document.body.scrollTop);
-  console.log(document.body.offsetHeight)
-
   // when we are at the bottom
   if((window.innerHeight + document.body.scrollTop) >= document.body.offsetHeight) {
-    d3.select('body')
-    .append('p')
-    .text('hahaha');
+    display_date = moment(display_date).subtract(1, 'months').format('YYYY-M');
+    id+=2
+
+    visualizeTimeline('t'+id+'x', yu, display_date);
+    visualizeTimeline('t'+(id+1)+'x', kb, display_date);
   }
 });
 </script>
